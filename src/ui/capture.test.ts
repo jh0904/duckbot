@@ -1,7 +1,7 @@
 // @vitest-environment happy-dom
 import { createApp, h, nextTick, ref } from 'vue'
 import { describe, expect, it, vi } from 'vitest'
-import BloubBot from '@/components/BloubBot.vue'
+import DuckBot from '@/components/DuckBot.vue'
 import type { StateId } from '@/bot/states'
 import { defaultCycle, offsetOf, type Block } from '@/bot/cycles'
 import { ouvreCycle, versSvgAnime } from './capture'
@@ -270,7 +270,7 @@ describe('duck export rendering', () => {
     const elapsed = ref(0)
     const host = document.createElement('div')
     const app = createApp({
-      render: () => h(BloubBot, {
+      render: () => h(DuckBot, {
         mode: 'conversation', playing: true, state: state.value, elapsed: elapsed.value,
         'onUpdate:state': (value: StateId) => { state.value = value },
         'onUpdate:elapsed': (value: number) => { elapsed.value = value }

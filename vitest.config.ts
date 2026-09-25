@@ -4,7 +4,7 @@ import { defineConfig } from 'vitest/config'
 
 export default defineConfig({
   /*
-   * Le plugin Vue est la pour un seul FICHIER, `ui/capture.test.ts` : il monte `BloubBot.vue`
+   * Le plugin Vue est la pour un seul FICHIER, `ui/capture.test.ts` : il monte `DuckBot.vue`
    * parce que le rendu exporte doit etre celui du composant, pas un second dessin monte a
    * cote. Sans le plugin, importer `capture.ts` suffit a faire echouer la collecte.
    *

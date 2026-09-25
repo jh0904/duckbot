@@ -19,8 +19,8 @@ export default {
      * Un nom propre ne se traduit pas non plus. `title` sert de `document.title`.
      * Voir aussi le <title> de index.html, qui est statique.
      */
-    name: 'bloub',
-    title: 'bloub — tête de canard animée',
+    name: 'DuckBot',
+    title: 'DuckBot — tête de canard animée',
     botAria: 'Tête de canard animée'
   },
 

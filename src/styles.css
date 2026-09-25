@@ -173,11 +173,10 @@ body,
   /*
    * Dimensionne d'apres la place REELLEMENT disponible, et non en `vw` seul : le
    * mot part a 6rem du bord gauche, donc une taille proportionnelle a la fenetre
-   * finissait par pousser le dernier B au-dela du bord droit. 3,05 est la largeur
-   * de « BLOUB » en cadratins a ce poids et cet interlettrage — mesuree, pas
-   * estimee — et le reste est la marge qu'on lui laisse a droite.
+   * finissait par pousser la derniere lettre au-dela du bord droit. Le diviseur
+   * suit la largeur de « DUCKBOT » et laisse une marge a droite.
    */
-  font-size: clamp(80px, calc((100vw - 7rem) / 3.05), 268px);
+  font-size: clamp(80px, calc((100vw - 7rem) / 4.7), 268px);
   font-weight: 900;
   letter-spacing: -0.045em;
   /*
@@ -188,7 +187,7 @@ body,
    * aucun degrade a montrer, et `-webkit-text-fill-color: transparent` le rend
    * purement invisible. Or l'interlettrage negatif retranche 0,045 cadratin apres
    * le DERNIER glyphe aussi, et la panse droite d'un B depasse deja son avance :
-   * le B final se coupait net, quelle que soit la largeur de la fenetre. C'est le
+   * la derniere lettre se coupait net, quelle que soit la largeur de la fenetre. C'est le
    * padding qui elargit la boite du degrade, pas la taille du texte.
    */
   padding-right: 0.1em;
@@ -228,7 +227,7 @@ body,
  * passe en bande HAUTE a cette largeur. Il n'y a plus rien a contourner, et un mot
  * pleine largeur pose sous une colonne centree se lit de travers s'il ne l'est
  * pas. La marge droite de 0,1em disparait avec le calage : le centrage laisse du
- * jeu des deux cotes, donc le dernier B n'a plus de bord ou se couper.
+ * jeu des deux cotes, donc la derniere lettre n'a plus de bord ou se couper.
  *
  * Le plafond descend a 200 px : sur une fenetre de tablette, 268 px de decoration
  * mangeaient un quart de la page. Et le diviseur perd les 6rem de marge gauche,
@@ -240,13 +239,13 @@ body,
     position: static;
     text-align: center;
     padding-right: 0;
-    font-size: clamp(80px, calc((100vw - 2.5rem) / 3.05), 200px);
+    font-size: clamp(60px, calc((100vw - 2.5rem) / 4.7), 200px);
     /*
      * Les lettres touchent le bord bas de la page.
      *
      * Une marge negative n'y suffit pas : la zone defilable est l'union des BOITES
      * des descendants, les marges n'y entrent pas, et le talon de la fonte —
-     * l'espace des jambages, vide pour BLOUB qui n'en a aucun — depassait la boite
+     * l'espace des jambages, vide pour DUCKBOT qui n'en a aucun — depassait la boite
      * de 21 px que la page comptait quand meme. D'ou 21 px de blanc sous le mot.
      *
      * On rogne donc a la LIGNE DE BASE : plus rien ne deborde, la page s'arrete ou

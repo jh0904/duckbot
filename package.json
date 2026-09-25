@@ -1,5 +1,5 @@
 {
-  "name": "bloub",
+  "name": "duckbot",
   "private": true,
   "version": "0.1.1",
   "type": "module",
@@ -8,7 +8,7 @@
   "author": "Jérémy Perret",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/jeremy-prt/bloub.git"
+    "url": "git+https://github.com/jh0904/duckbot.git"
   },
   "keywords": [
     "svg",

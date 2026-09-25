@@ -1,4 +1,4 @@
-# bloub — animated duck heads
+# DuckBot — animated duck heads
 
 One yellow SVG duck head redrawn from the supplied reference. It has ten selectable
 faces and accessories, plus sixteen expressions adapted from the original bot.
@@ -49,7 +49,7 @@ Two URLs are worth knowing:
 `DuckHead.vue` owns the shared head outline, effects, and expressions. Its
 eye geometry and idle motion reuse the original bot's expression catalogue and
 time sampling, adapted to the duck proportions.
-`BloubBot.vue` supplies a deterministic time value for live playback, frozen
+`DuckBot.vue` supplies a deterministic time value for live playback, frozen
 thumbnails, and frame-by-frame GIF/MP4 export. The older measurement engine
 remains in `src/bot/` as reference material.
 
@@ -65,9 +65,9 @@ remains in `src/bot/` as reference material.
 ## Using the component
 
 ```vue
-<BloubBot v-model:block="block" v-model:state="state" v-model:playing="playing" />
-<BloubBot state="orbit" :size="120" :frozen-at="1.2" />
-<BloubBot v-model:state="conversationState" mode="conversation" :playing="true" />
+<DuckBot v-model:block="block" v-model:state="state" v-model:playing="playing" />
+<DuckBot state="orbit" :size="120" :frozen-at="1.2" />
+<DuckBot v-model:state="conversationState" mode="conversation" :playing="true" />
 ```
 
 `block` is the playback cursor: a montage can play the same state twice, so the
@@ -82,7 +82,7 @@ and loops for as long as it stays active. `playing` starts and pauses that loop.
 
 Props: `size`, `duckStyle`, `frozenAt`, `cycle`, `mode`, `follow`.
 Models: `block`, `state`, `playing`, `elapsed`. See
-[BloubBot.vue](src/components/BloubBot.vue) for the details.
+[DuckBot.vue](src/components/DuckBot.vue) for the details.
 
 ## Changes
 

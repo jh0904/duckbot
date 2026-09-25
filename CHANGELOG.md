@@ -23,6 +23,8 @@ Versioning: [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Changed
 
+- The project is now DuckBot, including the app title, component, exported filenames,
+  and repository. Saved choices from the previous name remain readable.
 - Below 64rem the navigation rail is a horizontal bar at the top rather than a floating
   column on the left, and the wordmark sits in the flow at the foot of the page,
   centred and cropped at the baseline. Above 64rem nothing moves.
@@ -90,5 +92,5 @@ fixed, and the measurement is in the commit that fixes it.
 - `StateDef.hint`: 15 hardcoded French strings nothing read, inside a type meant to
   become public.
 
-[unreleased]: https://github.com/jeremy-prt/bloub/compare/v0.1.1...HEAD
+[unreleased]: https://github.com/jh0904/duckbot/commits/jh0904
 [0.1.1]: https://github.com/jeremy-prt/bloub/releases/tag/v0.1.1

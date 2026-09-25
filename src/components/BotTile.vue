@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import BloubBot from '@/components/BloubBot.vue'
+import DuckBot from '@/components/DuckBot.vue'
 import { DEFAULT_EXPRESSION } from '@/bot/expressions'
 import { DEFAULT_COLOR, DEFAULT_DUCK_STYLE, DEFAULT_SHAPE, type DuckStyle } from '@/bot/skins'
 import type { StateId } from '@/bot/states'
@@ -44,7 +44,7 @@ withDefaults(
     :aria-label="label"
     :aria-pressed="selected"
   >
-    <BloubBot
+    <DuckBot
       :state="state"
       :size="size"
       :shape="shape"

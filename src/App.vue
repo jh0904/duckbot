@@ -2,7 +2,7 @@
 import { computed, ref, watch } from 'vue'
 import BotTile from '@/components/BotTile.vue'
 import Customizer from '@/components/Customizer.vue'
-import BloubBot from '@/components/BloubBot.vue'
+import DuckBot from '@/components/DuckBot.vue'
 import ExportBar from '@/components/ExportBar.vue'
 import CycleDialog from '@/components/CycleDialog.vue'
 import GifDialog from '@/components/GifDialog.vue'
@@ -460,11 +460,11 @@ watch(expression, (v) => ecris('expression', v))
 /**
  * Nom du produit, en capitales pour le grand mot du pied de page. PAS traduit —
  * c'est une marque. Les capitales sont un logotype propre a ce pied de page : en
- * prose le nom s'ecrit « bloub », tout en minuscules, et c'est cette forme que
- * portent `app.name` et `app.title` dans les trois locales. La constante est donc
+ * prose le nom s'ecrit « DuckBot », et c'est cette forme que portent `app.name`
+ * et `app.title` dans les trois locales. La constante est donc
  * ecrite ici plutot que tiree de `t('app.name')`, qui n'a pas la meme casse.
  */
-const NOM = 'BLOUB'
+const NOM = 'DUCKBOT'
 
 /* ----------------------------------------------------------------- humeurs */
 
@@ -534,7 +534,7 @@ function addBlock(id: StateId) {
  * Deplacement de la tete de lecture depuis la regle. Le lecteur est le seul a
  * pouvoir recaler le moteur (il tient l'horloge), d'ou l'appel direct.
  */
-const bot = ref<InstanceType<typeof BloubBot> | null>(null)
+const bot = ref<InstanceType<typeof DuckBot> | null>(null)
 
 function onSeek(t: number) {
   const { index, elapsed: offset } = blockAt(cycle.value.blocks, t)
@@ -766,7 +766,7 @@ watch(
     </a>
     <div class="mt-4 grid grid-cols-[repeat(auto-fill,minmax(210px,1fr))] gap-3">
       <figure v-for="s in order" :key="s.id" class="flex flex-col items-center">
-        <BloubBot
+        <DuckBot
           :state="s.id"
           :size="210"
           :shape="shape"
@@ -879,7 +879,7 @@ watch(
             view === 'reglages' && !preview && 'avatar--geant'
           ]"
         >
-          <BloubBot
+          <DuckBot
             ref="bot"
             class="h-auto max-w-full"
             v-model:state="state"

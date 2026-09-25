@@ -35,7 +35,7 @@ afterEach(() => {
 
 describe('garde du stockage', () => {
   it('prefixe les cles avec le nom du produit', () => {
-    expect(cle('cycles')).toBe('bloub:cycles')
+    expect(cle('cycles')).toBe('duckbot:cycles')
   })
 
   it('rend `null` au lieu de jeter quand la lecture est refusee', () => {
@@ -71,8 +71,19 @@ describe('garde du stockage', () => {
       setItem: (k: string, v: string) => void tas.set(k, v)
     })
     ecris('forme', 'goutte')
-    expect(tas.get('bloub:forme')).toBe('goutte')
+    expect(tas.get('duckbot:forme')).toBe('goutte')
     expect(lis('forme')).toBe('goutte')
     expect(lis('couleur')).toBeNull()
+  })
+
+  it('relit les choix sauvegardes avant le renommage', () => {
+    const tas = new Map([['bloub:duckStyle', 'glasses']])
+    vi.stubGlobal('localStorage', {
+      getItem: (k: string) => tas.get(k) ?? null,
+      setItem: (k: string, v: string) => void tas.set(k, v)
+    })
+    expect(lis('duckStyle')).toBe('glasses')
+    ecris('duckStyle', 'cool')
+    expect(lis('duckStyle')).toBe('cool')
   })
 })

@@ -225,7 +225,7 @@ export function sansCommentaires(markup: string) {
 }
 
 /**
- * `bloub-goutte-neutre-encre.png`.
+ * `duckbot-goutte-neutre-encre.png`.
  *
  * Construit sur les **ids** et non sur les libelles traduits : le nom du fichier
  * ne doit pas changer avec la langue de l'interface.
@@ -255,7 +255,7 @@ export function nomFichier(
   const morceaux = [propre(forme), propre(expression), propre(couleur), propre(suffixe)].filter(
     Boolean
   )
-  return `bloub${morceaux.map((m) => `-${m}`).join('')}.${extension}`
+  return `duckbot${morceaux.map((m) => `-${m}`).join('')}.${extension}`
 }
 
 /**

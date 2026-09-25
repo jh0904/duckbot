@@ -5,17 +5,17 @@
  * chaine recopiee a chaque appel, sinon le prochain renommage en oubliera une et
  * l'utilisateur perdra ses reglages sans que rien ne le signale.
  *
- * Aucune migration depuis l'ancien prefixe : le renommage a ete fait avant toute
- * mise en ligne, il n'y a pas d'installation a rattraper.
+ * Les anciennes cles restent lisibles pour conserver les choix deja faits.
  */
-const PREFIXE = 'bloub:'
+const PREFIXE = 'duckbot:'
+const ANCIEN_PREFIXE = 'bloub:'
 
 /** Tout ce que l'application persiste. */
 const NOMS = ['cycles', 'cycle', 'forme', 'couleur', 'expression', 'duckStyle', 'langue'] as const
 
 export type NomStocke = (typeof NOMS)[number]
 
-/** `cle('cycles')` -> `'bloub:cycles'`. */
+/** `cle('cycles')` -> `'duckbot:cycles'`. */
 export function cle(nom: NomStocke): string {
   return `${PREFIXE}${nom}`
 }
@@ -35,7 +35,7 @@ export function cle(nom: NomStocke): string {
  */
 export function lis(nom: NomStocke): string | null {
   try {
-    return localStorage.getItem(cle(nom))
+    return localStorage.getItem(cle(nom)) ?? localStorage.getItem(`${ANCIEN_PREFIXE}${nom}`)
   } catch {
     return null
   }
