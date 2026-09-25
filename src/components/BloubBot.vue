@@ -222,18 +222,7 @@ onBeforeUnmount(() => {
     role="img"
     :aria-label="t('app.botAria')"
   >
-    <DuckHead
-      :id="uid"
-      :effect="effect"
-      :state="state"
-      :time="time"
-      :elapsed="elapsed"
-      :state-duration="stateDuration"
-      :effect-time="state === 'wink' ? elapsed : effect === 'wink' ? time - styleStartedAt : time"
-      :look-x="lookX"
-      :look-y="lookY"
-      :expression="faceExpression"
-    />
+    <!-- L'ancienne tete reste derriere la nouvelle pour eviter des yeux doubles. -->
     <g v-if="transition" data-duck-transition-from :opacity="transition.opacity" :transform="`scale(${transition.scale.toFixed(4)})`">
       <DuckHead
         :id="`${uid}-previous`"
@@ -248,5 +237,17 @@ onBeforeUnmount(() => {
         :expression="expressionFor(transition.state)"
       />
     </g>
+    <DuckHead
+      :id="uid"
+      :effect="effect"
+      :state="state"
+      :time="time"
+      :elapsed="elapsed"
+      :state-duration="stateDuration"
+      :effect-time="state === 'wink' ? elapsed : effect === 'wink' ? time - styleStartedAt : time"
+      :look-x="lookX"
+      :look-y="lookY"
+      :expression="faceExpression"
+    />
   </svg>
 </template>

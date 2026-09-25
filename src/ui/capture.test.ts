@@ -228,6 +228,23 @@ describe('duck export rendering', () => {
     }
   })
 
+  it('keeps the outgoing face behind the opaque current head while changing states', async () => {
+    const reader = await ouvreCycle(SETTINGS, [
+      { state: 'idle', duration: 1 },
+      { state: 'hexagon', duration: 1.6 }
+    ], 128)
+    try {
+      const frame = await reader.rendre(1.1)
+      const outgoing = frame.querySelector('[data-duck-transition-from]')!
+      const current = [...frame.querySelectorAll('[data-duck-animate="head"]')]
+        .find((head) => !outgoing.contains(head))!
+      expect(outgoing.compareDocumentPosition(current) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+      expect(current.getAttribute('opacity')).toBe('1')
+    } finally {
+      reader.ferme()
+    }
+  })
+
   it('lets burst and comet shrink without a full-size outgoing duck behind them', async () => {
     const reader = await ouvreCycle(SETTINGS, [
       { state: 'orbit', duration: 3.4 },
