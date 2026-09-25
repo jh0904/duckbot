@@ -96,6 +96,21 @@ export const SHAPES: BotShape[] = [
 export const SHAPE_BY_ID = new Map<string, BotShape>(SHAPES.map((s) => [s.id, s]))
 export const DEFAULT_SHAPE = 'cercle'
 
+export const DUCK_STYLES = [
+  'normal',
+  'wink',
+  'cool',
+  'look',
+  'love',
+  'cap',
+  'surprise',
+  'angry',
+  'happy',
+  'glasses'
+] as const
+export type DuckStyle = (typeof DUCK_STYLES)[number]
+export const DEFAULT_DUCK_STYLE: DuckStyle = 'normal'
+
 export type ColorId =
   | 'encre'
   | 'creme'
@@ -103,6 +118,7 @@ export type ColorId =
   | 'rouge'
   | 'orange'
   | 'ambre'
+  | 'jaune'
   | 'vert'
   | 'turquoise'
   | 'bleu'
@@ -122,6 +138,7 @@ export const COLORS: BotColor[] = [
   { id: 'rouge', hex: '#e8483f' },
   { id: 'orange', hex: '#f08a24' },
   { id: 'ambre', hex: '#f0b429' },
+  { id: 'jaune', hex: '#ffd448' },
   { id: 'vert', hex: '#3ecf8e' },
   { id: 'turquoise', hex: '#2fbfa0' },
   { id: 'bleu', hex: '#3b93f0' },
@@ -132,7 +149,7 @@ export const COLORS: BotColor[] = [
 ]
 
 export const COLOR_BY_ID = new Map<string, BotColor>(COLORS.map((c) => [c.id, c]))
-export const DEFAULT_COLOR = 'encre'
+export const DEFAULT_COLOR = 'jaune'
 
 /** Melange deux couleurs hex. Sert a la brume de profondeur des particules. */
 export function mixHex(from: string, to: string, t: number): string {

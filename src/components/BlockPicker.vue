@@ -2,13 +2,14 @@
 import { ref } from 'vue'
 import BotTile from '@/components/BotTile.vue'
 import { POSES, SEQUENCE, STATE_BY_ID, type StateId } from '@/bot/states'
+import type { DuckStyle } from '@/bot/skins'
 import { t } from '@/i18n'
 
 /**
  * Carte « + » de la piste et sa palette. Ajouter depuis la piste evite d'aller
  * jusqu'au panneau de droite quand on monte.
  */
-defineProps<{ shape: string; color: string; expression: string }>()
+defineProps<{ shape: string; color: string; duckStyle: DuckStyle; expression: string }>()
 const emit = defineEmits<{ pick: [state: StateId] }>()
 
 /** Les animations dans l'ordre de la video. */
@@ -103,6 +104,7 @@ function pick(state: StateId) {
         :state="s.id"
         :shape="shape"
         :color="color"
+        :duck-style="duckStyle"
         :expression="expression"
         :frozen-at="POSES[s.id]"
         @click="pick(s.id)"

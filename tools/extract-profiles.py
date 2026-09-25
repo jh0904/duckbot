@@ -37,7 +37,6 @@ SAMPLES = 64
 # et les autres sont donc construites analytiquement dans shape.ts, ce qui est
 # plus juste que de figer un releve bruite.
 SHAPES = [
-    ('egg', 164, 'oeuf : meme hauteur que la boule, retreci en largeur'),
     ('hexagon', 174, 'hexagone pointe en haut, coins tres arrondis'),
     ('triangle', 190, 'triangle pointe en haut, coins tres arrondis'),
 ]

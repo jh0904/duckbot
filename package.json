@@ -3,7 +3,7 @@
   "private": true,
   "version": "0.1.1",
   "type": "module",
-  "description": "SVG recreation of the x.ai bot avatar. One shape morphing through 14 states, measured off the reference video frame by frame.",
+  "description": "Animated yellow SVG duck head with ten effects and sixteen expressions.",
   "license": "MIT",
   "author": "Jérémy Perret",
   "repository": {

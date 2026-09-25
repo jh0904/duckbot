@@ -54,7 +54,13 @@ import {
   type Cycle
 } from '@/bot/cycles'
 import { DEFAULT_EXPRESSION, EXPRESSION_BY_ID } from '@/bot/expressions'
-import { COLOR_BY_ID, DEFAULT_COLOR, DEFAULT_SHAPE, SHAPE_BY_ID } from '@/bot/skins'
+import {
+  DEFAULT_COLOR,
+  DEFAULT_DUCK_STYLE,
+  DEFAULT_SHAPE,
+  DUCK_STYLES,
+  type DuckStyle
+} from '@/bot/skins'
 import { POSES, SEQUENCE, STATES, type StateId } from '@/bot/states'
 
 /**
@@ -438,14 +444,17 @@ const droite = computed(() => !nue.value && view.value !== 'reglages')
 
 /* ------------------------------------------------------------------- skins */
 
-const shape = ref(stored('forme', DEFAULT_SHAPE, (v) => SHAPE_BY_ID.has(v)))
-const color = ref(stored('couleur', DEFAULT_COLOR, (v) => COLOR_BY_ID.has(v)))
+const shape = ref(DEFAULT_SHAPE)
+const color = ref(DEFAULT_COLOR)
+const duckStyle = ref<DuckStyle>(
+  stored('duckStyle', DEFAULT_DUCK_STYLE, (v) => DUCK_STYLES.some((style) => style === v)) as DuckStyle
+)
 const expression = ref(
   stored('expression', DEFAULT_EXPRESSION, (v) => EXPRESSION_BY_ID.has(v))
 )
+if (duckStyle.value !== 'normal') expression.value = DEFAULT_EXPRESSION
 
-watch(shape, (v) => ecris('forme', v))
-watch(color, (v) => ecris('couleur', v))
+watch(duckStyle, (v) => ecris('duckStyle', v))
 watch(expression, (v) => ecris('expression', v))
 
 /**
@@ -595,7 +604,7 @@ async function exporteCycle() {
   const images = cycleImages(totalDuration(blocs), format)
   const pas = cyclePas(format)
   const taille = CYCLE_TAILLE[format]
-  const reglages = { shape: shape.value, color: color.value, expression: expression.value }
+  const reglages = { shape: shape.value, color: color.value, expression: expression.value, duckStyle: duckStyle.value }
   const suit = (fait: number, total: number) => (avancementCycle.value = fait / total)
 
   avancementCycle.value = 0
@@ -614,7 +623,10 @@ async function exporteCycle() {
           suit,
           controle.signal
         )
-    telecharge(fichier, nomFichier(nomDeCycle(cycle.value), '', '', mp4 ? 'mp4' : 'gif'))
+    telecharge(
+      fichier,
+      nomFichier(nomDeCycle(cycle.value), '', '', mp4 ? 'mp4' : 'gif', duckStyle.value)
+    )
     dialogueCycle.value = false
   } catch (e) {
     // Un abandon n'est pas un echec : on ne signale pas a quelqu'un qu'il a obtenu ce
@@ -679,16 +691,22 @@ async function exporte(id: ActionId, confirme = false) {
   clearTimeout(confirmation)
   etatExport.value = 'occupe'
   const nom = () =>
-    nomFichier(shape.value, expression.value, color.value, action.extension, action.suffixe)
+    nomFichier(
+      shape.value,
+      expression.value,
+      color.value,
+      action.extension,
+      `${duckStyle.value}-${action.suffixe ?? ''}`
+    )
   try {
     if (action.mode === 'anime') {
       // L'animation ne part PAS du SVG affiche : elle est rejouee depuis le debut
       // sur une instance hors ecran. Cf. `sequenceDuBot`.
-      const reglages = { shape: shape.value, color: color.value, expression: expression.value }
+      const reglages = { shape: shape.value, color: color.value, expression: expression.value, duckStyle: duckStyle.value }
       telecharge(await versSvgAnime(reglages, action.taille, ANIM_IMAGES, ANIM_PAS), nom())
       etatExport.value = 'exporte'
     } else if (action.mode === 'gif') {
-      const reglages = { shape: shape.value, color: color.value, expression: expression.value }
+      const reglages = { shape: shape.value, color: color.value, expression: expression.value, duckStyle: duckStyle.value }
       const fond = couleurDeFond(fondGif.value)
       telecharge(await versGifAnime(reglages, action.taille, GIF_IMAGES, GIF_PAS, fond), nom())
       etatExport.value = 'exporte'
@@ -753,6 +771,7 @@ watch(
           :size="210"
           :shape="shape"
           :color="color"
+          :duck-style="duckStyle"
           :expression="expression"
           :frozen-at="POSES[s.id]"
         />
@@ -871,8 +890,9 @@ watch(
             :size="preview ? 560 : 440"
             :shape="forme"
             :color="color"
+            :duck-style="duckStyle"
             :expression="humeur ?? expression"
-            :follow="view === 'reglages'"
+            :follow="view !== 'animations'"
             :gaze="intro ? INTRO_GAZE : null"
           />
         </div>
@@ -959,6 +979,7 @@ watch(
               :state="s.id"
               :shape="shape"
               :color="color"
+              :duck-style="duckStyle"
               :expression="expression"
               :frozen-at="POSES[s.id]"
               @click="addBlock(s.id)"
@@ -969,8 +990,9 @@ watch(
         <!-- personnalisation -->
         <template v-else>
           <Customizer
-            v-model:shape="shape"
-            v-model:color="color"
+            :shape="shape"
+            :color="color"
+            v-model:duck-style="duckStyle"
             v-model:expression="expression"
           />
         </template>
@@ -997,6 +1019,7 @@ watch(
       :elapsed="elapsed"
       :shape="shape"
       :color="color"
+      :duck-style="duckStyle"
       :expression="expression"
       @seek="onSeek"
       @preview="preview = true"

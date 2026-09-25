@@ -77,8 +77,8 @@ export function makeBlock(state: StateId): Block {
 }
 
 /**
- * Le montage releve sur la video : l'ordre de `SEQUENCE`, chaque etat tenu sa
- * duree mesuree. Il sert d'amorce au premier lancement, puis il appartient a
+ * Le montage des etats conserves : l'ordre de `SEQUENCE`, chaque etat tenu sa
+ * duree. Il sert d'amorce au premier lancement, puis il appartient a
  * l'utilisateur — il s'edite et se stocke comme les autres. La reference, elle,
  * reste dans le code : vider le stockage la fait revenir.
  */

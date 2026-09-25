@@ -29,6 +29,14 @@ describe('svg anime', () => {
     expect(sortie.match(/<mask[\s\S]*?<\/mask>/)![0]).not.toContain('transform="matrix')
   })
 
+  it('anime aussi les yeux visibles de la tete de canard', () => {
+    const duck = BASE.replace('</svg>', '<path data-duck-eye="0" d="M0 0Z" transform="matrix(1,0,0,1,2,3)"/><path data-duck-eye="1" d="M0 0Z" transform="matrix(1,0,0,1,4,5)"/></svg>')
+    const rendered = svgAnime(duck, MATRICES, 3)
+    expect(rendered.match(/class="oeil0"/g)).toHaveLength(2)
+    expect(rendered.match(/class="oeil1"/g)).toHaveLength(2)
+    expect(rendered).not.toContain('data-duck-eye')
+  })
+
   it('laisse le corps intact', () => {
     // la silhouette ne bouge pas assez pour etre animee : 1,17u sur un rayon de 100
     expect(sortie).toContain('<path d="M61 0C62 2Z" fill="#fff"/>')

@@ -8,8 +8,8 @@ import type fr from './fr'
 const en: typeof fr = {
   app: {
     name: 'bloub',
-    title: 'bloub — animated SVG avatar',
-    botAria: 'Animated bloub avatar'
+    title: 'bloub — animated duck head',
+    botAria: 'Animated duck head'
   },
 
   gallery: {
@@ -26,6 +26,7 @@ const en: typeof fr = {
   panel: {
     animations: 'Animation',
     shape: 'Shape',
+    duckStyle: 'Duck effects',
     expression: 'Expression',
     color: 'Colour'
   },
@@ -47,7 +48,7 @@ const en: typeof fr = {
     cycleReessayer: 'Try again',
     gifTitle: 'Download animated GIF',
     gifDetail:
-      'GIF transparency is all-or-nothing: with no background, the ball\u2019s edge comes out a little hard.',
+      'GIF transparency is all-or-nothing: with no background, the duck\u2019s edge comes out a little hard.',
     gifBackground: 'Background',
     fond_blanc: 'White background',
     fond_blanc_aide: 'Smooth edge, for light surfaces',
@@ -123,7 +124,6 @@ const en: typeof fr = {
     notify: 'Notification',
     exclaim: 'Exclamation',
     sleep: 'Sleep',
-    egg: 'Egg',
     hexagon: 'Hexagon',
     play: 'Play',
     orbit: 'Orbit',
@@ -143,6 +143,19 @@ const en: typeof fr = {
     goutte: 'Droplet'
   },
 
+  ducks: {
+    normal: 'Classic',
+    wink: 'Wink',
+    cool: 'Sunglasses',
+    look: 'Side glance',
+    love: 'Heart eyes',
+    cap: 'Cap',
+    surprise: 'Surprised',
+    angry: 'Angry',
+    happy: 'Happy',
+    glasses: 'Glasses'
+  },
+
   colors: {
     encre: 'Ink',
     creme: 'Cream',
@@ -150,6 +163,7 @@ const en: typeof fr = {
     rouge: 'Red',
     orange: 'Orange',
     ambre: 'Amber',
+    jaune: 'Yellow',
     vert: 'Green',
     turquoise: 'Turquoise',
     bleu: 'Blue',

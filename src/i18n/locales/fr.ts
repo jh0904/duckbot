@@ -20,8 +20,8 @@ export default {
      * Voir aussi le <title> de index.html, qui est statique.
      */
     name: 'bloub',
-    title: 'bloub — avatar SVG animé',
-    botAria: 'Avatar bloub animé'
+    title: 'bloub — tête de canard animée',
+    botAria: 'Tête de canard animée'
   },
 
   gallery: {
@@ -43,6 +43,7 @@ export default {
      */
     animations: 'Animation',
     shape: 'Forme',
+    duckStyle: 'Effets du canard',
     expression: 'Expression',
     color: 'Couleur'
   },
@@ -70,7 +71,7 @@ export default {
     cycleReessayer: 'Réessayer',
     gifTitle: 'Télécharger le GIF animé',
     gifDetail:
-      "Le GIF ne gère la transparence qu'en tout ou rien : sans fond, le contour de la boule est un peu dur.",
+      "Le GIF ne gère la transparence qu'en tout ou rien : sans fond, le contour du canard est un peu dur.",
     gifBackground: 'Fond',
     fond_blanc: 'Fond blanc',
     fond_blanc_aide: 'Contour lisse, à poser sur du clair',
@@ -148,7 +149,6 @@ export default {
     notify: 'Notification',
     exclaim: 'Exclamation',
     sleep: 'Veille',
-    egg: 'Œuf',
     hexagon: 'Hexagone',
     play: 'Lecture',
     orbit: 'Orbite',
@@ -168,6 +168,19 @@ export default {
     goutte: 'Goutte'
   },
 
+  ducks: {
+    normal: 'Classique',
+    wink: "Clin d'œil",
+    cool: 'Lunettes de soleil',
+    look: 'Regard de côté',
+    love: 'Amoureux',
+    cap: 'Casquette',
+    surprise: 'Surpris',
+    angry: 'Fâché',
+    happy: 'Joyeux',
+    glasses: 'Lunettes'
+  },
+
   colors: {
     encre: 'Encre',
     creme: 'Crème',
@@ -175,6 +188,7 @@ export default {
     rouge: 'Rouge',
     orange: 'Orange',
     ambre: 'Ambre',
+    jaune: 'Jaune',
     vert: 'Vert',
     turquoise: 'Turquoise',
     bleu: 'Bleu',

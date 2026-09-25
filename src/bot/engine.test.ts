@@ -31,7 +31,6 @@ function footprint(d: string) {
 const EMPREINTES: Array<[StateId, number, number, number, number]> = [
   // etat,        date,  largeur, hauteur, tolerance
   ['idle', 0.5, 2.0, 2.0, 0.05],
-  ['egg', 0.9, 1.653, 2.0, 0.06],
   ['hexagon', 0.9, 1.82, 2.01, 0.07],
   ['exclaim', 0.9, 0.263, 0.842, 0.03],
   ['alert', 0.8, 0.421, 0.753, 0.04],
@@ -78,7 +77,7 @@ describe('moteur', () => {
     // le piege : purger l'etat precedent une fois le fondu fini rend cette
     // date irrecuperable, et le fondu disparait a la relecture
     const e = new BotEngine(100, 'idle')
-    e.setState('egg', 1)
+    e.setState('hexagon', 1)
     const pendant = e.sample(1.2).bodyPath
     e.sample(3)
     expect(e.sample(1.2).bodyPath).toBe(pendant)
@@ -88,7 +87,7 @@ describe('moteur', () => {
     // avant le changement, il n'y a rien a fondre : on doit voir l'etat sortant
     const e = new BotEngine(100, 'idle')
     const avant = e.sample(0.5).bodyPath
-    e.setState('egg', 1)
+    e.setState('hexagon', 1)
     expect(e.sample(0.5).bodyPath).toBe(avant)
   })
 
@@ -100,14 +99,14 @@ describe('moteur', () => {
 
   it('interpole la silhouette pendant une transition, sans saut', () => {
     const e = new BotEngine(100, 'idle')
-    e.setState('egg', 1)
+    e.setState('hexagon', 1)
     const largeurs = [1, 1.1, 1.2, 1.3, 1.4].map((t) => footprint(e.sample(t).bodyPath).w)
-    // strictement decroissant : la boule se retrecit vers l'oeuf
+    // strictement decroissant : la boule se retrecit vers l'hexagone
     for (let i = 1; i < largeurs.length; i++) {
       expect(largeurs[i]!).toBeLessThan(largeurs[i - 1]!)
     }
     expect(largeurs[0]!).toBeCloseTo(2, 1)
-    expect(footprint(e.sample(2).bodyPath).w).toBeCloseTo(1.65, 1)
+    expect(footprint(e.sample(2).bodyPath).w).toBeCloseTo(1.82, 1)
   })
 
   it('ne fait jamais depasser le corps du viewBox', () => {
@@ -135,7 +134,7 @@ describe('forme personnalisee', () => {
   })
 
   it('laisse intacts les etats qui dessinent leur propre forme', () => {
-    for (const id of ['exclaim', 'alert', 'sleep', 'egg', 'hexagon'] as const) {
+    for (const id of ['exclaim', 'alert', 'sleep', 'hexagon'] as const) {
       const nu = new BotEngine(100, id)
       const habille = new BotEngine(100, id, radii('goutte'))
       expect(habille.sample(1).bodyPath).toBe(nu.sample(1).bodyPath)
@@ -187,14 +186,14 @@ describe('forme personnalisee', () => {
 
 describe('etats', () => {
   /**
-   * La sequence est le CATALOGUE : les 14 etats releves sur la video, ceux que
+   * La sequence est le CATALOGUE : les 13 etats retenus, ceux que
    * la palette propose et que la planche montre. Tout etat hors sequence est une
    * transition d'interface, choisie et non mesuree — il ne doit donc jamais
    * apparaitre dans le catalogue, et le rester est precisement ce qu'on verifie.
    */
-  it('garde les 14 etats de la video dans la sequence, et rien d autre', () => {
-    expect(SEQUENCE).toHaveLength(14)
-    expect(new Set(SEQUENCE).size).toBe(14)
+  it('garde les 13 etats retenus dans la sequence, et rien d autre', () => {
+    expect(SEQUENCE).toHaveLength(13)
+    expect(new Set(SEQUENCE).size).toBe(13)
     for (const id of SEQUENCE) expect(STATES.some((s) => s.id === id), id).toBe(true)
   })
 
@@ -204,7 +203,7 @@ describe('etats', () => {
   })
 
   it('montre le visage sur les etats a visage, le cache sur les autres', () => {
-    const avec: StateId[] = ['idle', 'wink', 'wide', 'notify', 'egg', 'hexagon']
+    const avec: StateId[] = ['idle', 'wink', 'wide', 'notify', 'hexagon']
     const sans: StateId[] = ['thinking', 'alert', 'exclaim', 'sleep']
     for (const id of avec) expect(new BotEngine(100, id).sample(0.9).eyes.length).toBe(2)
     for (const id of sans) expect(new BotEngine(100, id).sample(0.9).eyes.length).toBe(0)
@@ -413,14 +412,14 @@ describe('robustesse du regard', () => {
 describe('reset', () => {
   it('oublie l etat precedent, la ou setState le garde pour le fondre', () => {
     const avecFondu = new BotEngine(100, 'idle')
-    avecFondu.setState('egg', 0)
+    avecFondu.setState('hexagon', 0)
     const remis = new BotEngine(100, 'idle')
-    remis.reset('egg', 0)
+    remis.reset('hexagon', 0)
 
-    // au debut du morph, l'un melange encore le repos, l'autre est deja l'oeuf
+    // au debut du morph, l'un melange encore le repos, l'autre est deja l'hexagone
     expect(avecFondu.sample(0).bodyPath).not.toBe(remis.sample(0).bodyPath)
-    // et l'oeuf seul est bien ce qu'un moteur neuf sur `egg` rend
-    expect(remis.sample(0).bodyPath).toBe(new BotEngine(100, 'egg').sample(0).bodyPath)
+    // et l'hexagone seul est bien ce qu'un moteur neuf sur `hexagon` rend
+    expect(remis.sample(0).bodyPath).toBe(new BotEngine(100, 'hexagon').sample(0).bodyPath)
   })
 
   /*
@@ -506,7 +505,7 @@ describe('changement d etat pendant un fondu', () => {
     const suite: Array<[StateId, number]> = [
       ['wide', 0.5],
       ['idle', 0.55],
-      ['egg', 0.6],
+      ['hexagon', 0.6],
       ['orbit', 0.65],
       ['notify', 0.7]
     ]

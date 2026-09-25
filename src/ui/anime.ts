@@ -72,7 +72,36 @@ export function svgAnime(base: string, matrices: string[][], duree: number): str
     regles.join('') +
     '</style>'
 
-  return base.replace(mask[0], maskAnime).replace('</svg>', `${style}</svg>`)
+  const anime = base.replace(mask[0], maskAnime).replace(
+    /<path\b[^>]*data-duck-eye="([01])"[^>]*\/?\s*>/g,
+    (tag, index: string) => tag
+      .replace(/transform="matrix\([^)]*\)"/, `class="oeil${index}"`)
+      .replace(/ data-duck-eye="[01]"/, '')
+  )
+  return anime.replace('</svg>', `${style}</svg>`)
+}
+
+/** Anime les transformations deja rendues par DuckHead, sans redessiner le canard. */
+export function svgAnimeDuck(base: string, frames: Array<Record<string, string>>, duration: number): string {
+  if (frames.length < 2) throw new Error('at least two duck frames are required')
+  const ids = Object.keys(frames[0]!)
+  if (!ids.length || frames.some((frame) => ids.some((id) => frame[id] === undefined))) {
+    throw new Error('inconsistent duck animation frames')
+  }
+  const step = 100 / (frames.length - 1)
+  const rules = ids.map((id) => {
+    const keyframes = frames.map((frame, i) => `${+(i * step).toFixed(3)}%{transform:${frame[id]}}`).join('')
+    return `.duck-${id}{animation:duck-${id} ${duration}s linear infinite alternate;transform-box:view-box;transform-origin:0 0}@keyframes duck-${id}{${keyframes}}`
+  }).join('')
+  let matched = 0
+  const animated = base.replace(/<g\b[^>]*data-duck-animate="([a-z-]+)"[^>]*>/g, (tag, id: string) => {
+    if (!ids.includes(id)) return tag
+    matched++
+    return tag.replace(/\sdata-duck-animate="[a-z-]+"/, '')
+      .replace(/transform="[^"]*"/, `class="duck-${id}"`)
+  })
+  if (matched !== ids.length) throw new Error('duck animation layers do not match the SVG')
+  return animated.replace('</svg>', `<style>${rules}</style></svg>`)
 }
 
 /* ------------------------------------------------------------------- gif */

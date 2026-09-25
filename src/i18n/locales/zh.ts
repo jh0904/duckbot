@@ -13,8 +13,8 @@ import type fr from './fr'
 const zh: typeof fr = {
   app: {
     name: 'bloub',
-    title: 'bloub — 动画 SVG 头像',
-    botAria: 'bloub 动画头像'
+    title: 'bloub — 动态鸭头',
+    botAria: '动态鸭头'
   },
 
   gallery: {
@@ -31,6 +31,7 @@ const zh: typeof fr = {
   panel: {
     animations: '动画',
     shape: '形状',
+    duckStyle: '鸭头效果',
     expression: '表情',
     color: '颜色'
   },
@@ -51,7 +52,7 @@ const zh: typeof fr = {
     cycleProgress: '正在导出…',
     cycleReessayer: '重试',
     gifTitle: '下载 GIF 动图',
-    gifDetail: 'GIF 的透明只有全有或全无：不加背景时，球体边缘会略显生硬。',
+    gifDetail: 'GIF 的透明只有全有或全无：不加背景时，鸭头边缘会略显生硬。',
     gifBackground: '背景',
     fond_blanc: '白色背景',
     fond_blanc_aide: '边缘平滑，适合浅色底',
@@ -126,7 +127,6 @@ const zh: typeof fr = {
     notify: '通知',
     exclaim: '感叹号',
     sleep: '休眠',
-    egg: '蛋形',
     hexagon: '六边形',
     play: '播放',
     orbit: '轨道',
@@ -146,6 +146,19 @@ const zh: typeof fr = {
     goutte: '水滴'
   },
 
+  ducks: {
+    normal: '经典',
+    wink: '眨眼',
+    cool: '墨镜',
+    look: '斜看',
+    love: '爱心',
+    cap: '鸭舌帽',
+    surprise: '惊讶',
+    angry: '生气',
+    happy: '开心',
+    glasses: '眼镜'
+  },
+
   colors: {
     encre: '墨黑',
     creme: '奶油白',
@@ -153,6 +166,7 @@ const zh: typeof fr = {
     rouge: '红色',
     orange: '橙色',
     ambre: '琥珀色',
+    jaune: '黄色',
     vert: '绿色',
     turquoise: '青绿色',
     bleu: '蓝色',

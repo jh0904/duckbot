@@ -16,6 +16,7 @@ import {
   type Cycle
 } from '@/bot/cycles'
 import type { StateId } from '@/bot/states'
+import type { DuckStyle } from '@/bot/skins'
 import { MAX_ZOOM, MIN_ZOOM, mmss } from '@/ui/timeline'
 import { nomDeCycle, pluriel, t } from '@/i18n'
 
@@ -29,6 +30,7 @@ const props = defineProps<{
   elapsed: number
   shape: string
   color: string
+  duckStyle: DuckStyle
   expression: string
 }>()
 
@@ -254,6 +256,7 @@ function onRemove() {
         :elapsed="elapsed"
         :shape="shape"
         :color="color"
+        :duck-style="duckStyle"
         :expression="expression"
         @update:blocks="(b: Block[]) => edit({ blocks: b })"
         @add="(s: StateId) => edit({ blocks: blocksWith(blocks, s) })"

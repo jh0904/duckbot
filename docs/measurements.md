@@ -61,10 +61,10 @@ pip install numpy pillow
 python tools/extract-profiles.py frames/ > src/bot/profiles.ts
 ```
 
-The script composes exact filenames (`h_0164.png` and friends, zero-padded to
-four), so the `h_` prefix and the `fps=10` cut both matter. It extracts the three
-profiles that can't be built analytically (egg, hexagon, triangle), not all 14
-states; the rest are either the measured circle or constructed in `skins.ts`.
+The script composes exact filenames (`h_0174.png` and `h_0190.png`, zero-padded to
+four), so the `h_` prefix and the `fps=10` cut both matter. It extracts the two
+profiles that can't be built analytically (hexagon and triangle), not every
+state; the rest are either the measured circle or constructed in `skins.ts`.
 
 `reference.mp4` and `frames/` are local inputs and are not in the repository.
 

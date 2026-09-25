@@ -11,6 +11,7 @@ import {
   type Block
 } from '@/bot/cycles'
 import { POSES, type StateId } from '@/bot/states'
+import type { DuckStyle } from '@/bot/skins'
 import { BASE_SCALE, clampZoom, ticksFor } from '@/ui/timeline'
 import { secondes, secondesCourtes, t } from '@/i18n'
 
@@ -26,6 +27,7 @@ const props = defineProps<{
   elapsed: number
   shape: string
   color: string
+  duckStyle: DuckStyle
   expression: string
 }>()
 
@@ -236,7 +238,7 @@ function onBlockUp(index: number) {
   if (!d) return
   // un clic sans deplacement, c'est un saut de la tete de lecture
   if (!d.moved) {
-    block.value = index
+    emit('seek', offsetOf(props.blocks, index))
     return
   }
   if (d.to === d.from) return
@@ -393,8 +395,8 @@ function onRulerMove(e: PointerEvent) {
               @pointercancel="drag = null"
               data-carte
               aria-keyshortcuts="Alt+ArrowLeft Alt+ArrowRight ArrowLeft ArrowRight"
-              @keydown.enter.prevent="block = i"
-              @keydown.space.prevent="block = i"
+              @keydown.enter.prevent="emit('seek', offsetOf(blocks, i))"
+              @keydown.space.prevent="emit('seek', offsetOf(blocks, i))"
               @keydown.left="onCardKey(i, $event)"
               @keydown.right="onCardKey(i, $event)"
             >
@@ -409,6 +411,7 @@ function onRulerMove(e: PointerEvent) {
                   :size="Math.min(56, Math.max(30, width(i) * 0.5))"
                   :shape="shape"
                   :color="color"
+                  :duck-style="duckStyle"
                   :expression="expression"
                   :paper="i === block ? '#ffffff' : '#f2f2f2'"
                   :frozen-at="POSES[b.state]"
@@ -464,6 +467,7 @@ function onRulerMove(e: PointerEvent) {
             <BlockPicker
               :shape="shape"
               :color="color"
+              :duck-style="duckStyle"
               :expression="expression"
               @pick="emit('add', $event)"
             />

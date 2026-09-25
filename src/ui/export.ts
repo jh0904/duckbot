@@ -85,10 +85,8 @@ export interface ActionExport {
 export const ANIM_CLES_PAR_SEC = 30
 
 /**
- * Duree capturee. Le premier clignement tombe a 1,4 s puis les suivants toutes
- * les 1,9 a 4,6 s (`BLINKS`, face.ts) : trois secondes en contiennent donc
- * toujours au moins un. Plus court, on exporterait souvent une boule qui se
- * contente de deriver.
+ * Duree capturee. La tete de canard cligne toutes les 2,8 secondes : trois
+ * secondes contiennent un clignement complet et ses mouvements de repos.
  *
  * La boucle, elle, est sans couture malgre une derive non periodique : l'animation
  * est jouee en aller-retour (`animation-direction: alternate`), donc elle reboucle

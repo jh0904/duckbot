@@ -1,159 +1,355 @@
 // @vitest-environment happy-dom
-import { describe, expect, it } from 'vitest'
-import { BotEngine } from '@/bot/engine'
-import { blockAt, defaultCycle, offsetOf, type Block } from '@/bot/cycles'
-import { RAYON } from '@/bot/repere'
-import { SHAPE_BY_ID } from '@/bot/skins'
-import { EXPRESSION_BY_ID } from '@/bot/expressions'
-import { ouvreCycle } from './capture'
+import { createApp, h, nextTick, ref } from 'vue'
+import { describe, expect, it, vi } from 'vitest'
+import BloubBot from '@/components/BloubBot.vue'
+import type { StateId } from '@/bot/states'
+import { defaultCycle, offsetOf, type Block } from '@/bot/cycles'
+import { ouvreCycle, versSvgAnime } from './capture'
 import { DEMI_ECRAN, viewBoxExport } from './export'
 
-/**
- * Le lecteur hors ecran, celui qui rend les images d'un export de montage.
- *
- * C'est le seul test du depot a demander un DOM, d'ou l'environnement `happy-dom` en tete
- * de fichier : le reste de la suite tourne en `node`, ce qui rendait `capture.ts` — et avec
- * lui toute la chaine d'export — intestable.
- *
- * Ce qu'il attrape n'est visible d'aucune autre facon qu'en regardant un MP4 image par
- * image, et c'est precisement ce qui l'a laisse passer : trois defauts abimaient
- * silencieusement chaque video exportee.
- */
+const SETTINGS = { shape: 'cercle', color: 'jaune', expression: 'neutre', duckStyle: 'normal' as const }
 
-const REGLAGES = { shape: 'cercle', color: 'encre', expression: 'neutre' }
-const TAILLE = 128
-
-/** Le `d` du corps, tel que le composant l'a mis dans le masque. */
-function corpsDe(svg: SVGSVGElement) {
-  return svg.querySelector('mask path')!.getAttribute('d')!
+function head(svg: SVGSVGElement) {
+  return svg.querySelector('[data-duck-animate="head"]')?.getAttribute('transform')
 }
 
-/** Les matrices des yeux, dans l'ordre du document. */
-function yeuxDe(svg: SVGSVGElement) {
-  return [...svg.querySelectorAll('mask [transform]')].map((e) => e.getAttribute('transform')!)
-}
-
-/** Le moteur seul, cale comme `rendAt` le fait : chaque etat date de son offset absolu. */
-function moteurAuMemeInstant(blocs: Block[], t: number) {
-  const e = new BotEngine(
-    RAYON,
-    blocs[0]!.state,
-    SHAPE_BY_ID.get(REGLAGES.shape)!.radii,
-    EXPRESSION_BY_ID.get(REGLAGES.expression)!
-  )
-  const { index } = blockAt(blocs, t)
-  for (let i = 1; i <= index; i++) e.setState(blocs[i]!.state, offsetOf(blocs, i))
-  return e.sample(t)
-}
-
-/**
- * Le cadre de l'export d'un CYCLE doit etre celui que le composant DESSINE, pas un nombre
- * qui lui ressemble.
- *
- * `DEMI_ECRAN` valait 158 en dur face a un `VB = 158` ecrit a la main dans le composant, et
- * rien ne reliait les deux. La regression visee : quelqu'un elargit le viewBox pour un
- * nouvel etat aux anneaux plus grands, l'export continue au cadre precedent et ajoute des
- * bandes vides a chaque video, tous les tests au vert.
- *
- * Compare ici au `viewBox` reellement emis, et non a la constante : les deux viennent
- * desormais du meme module, donc une assertion entre elles serait une tautologie. Ce qui
- * peut encore deriver, c'est le GABARIT.
- */
-describe('cadre de l export', () => {
-  it('exporte le cycle sur le viewBox que le composant dessine', async () => {
-    const lecteur = await ouvreCycle(REGLAGES, defaultCycle().blocks, TAILLE)
+describe('duck export rendering', () => {
+  it('uses the same viewBox in the player and cycle export', async () => {
+    const reader = await ouvreCycle(SETTINGS, defaultCycle().blocks, 128)
     try {
-      const svg = await lecteur.rendre(0)
-      expect(svg.getAttribute('viewBox')).toBe(viewBoxExport(DEMI_ECRAN))
+      expect((await reader.rendre(0)).getAttribute('viewBox')).toBe(viewBoxExport(DEMI_ECRAN))
     } finally {
-      lecteur.ferme()
-    }
-  })
-})
-
-describe('lecteur hors ecran', () => {
-  /**
-   * Rejouer la sequence doit redonner exactement les memes images.
-   *
-   * L'export GIF en depend : il fait DEUX passes, une pour recenser la palette et une pour
-   * indexer, et la palette de la premiere ne vaut que si la seconde rend les memes images.
-   * Un seul lecteur servait aux deux, or il retient le dernier bloc pose et le moteur
-   * retient l'etat precedent : rejouer l'image 0 apres une passe complete datait le premier
-   * etat a l'instant 0 avec le DERNIER en etat precedent, et rendait donc la pose de
-   * celui-la. Le GIF par defaut s'ouvrait sur une boule SANS YEUX — la comete a un
-   * `eyeAlpha` nul.
-   */
-  it('rejoue la sequence a l identique', async () => {
-    const blocs = defaultCycle().blocks
-    const neuf = await ouvreCycle(REGLAGES, blocs, TAILLE)
-    const reference = { corps: corpsDe(await neuf.rendre(0)), yeux: yeuxDe(await neuf.rendre(0)) }
-    neuf.ferme()
-
-    const rejoue = await ouvreCycle(REGLAGES, blocs, TAILLE)
-    try {
-      // une passe complete, grossierement echantillonnee : ce qui compte est d'avoir
-      // traverse tous les blocs avant de revenir au debut
-      for (let t = 0; t < 30; t += 1.5) await rejoue.rendre(t)
-      const apres = await rejoue.rendre(0)
-      expect(corpsDe(apres)).toBe(reference.corps)
-      expect(yeuxDe(apres)).toEqual(reference.yeux)
-      expect(yeuxDe(apres)).toHaveLength(2)
-    } finally {
-      rejoue.ferme()
+      reader.ferme()
     }
   })
 
-  /**
-   * L'image rendue doit etre celle du moteur, y compris SUR un joint de bloc.
-   *
-   * Aux jointures, le composant posait bien l'etat a son offset absolu puis echantillonnait
-   * a la bonne date — mais le watcher de `state`, dont la file est videe par le `nextTick`
-   * de l'export, repassait derriere un `redrawFrozen()` non inerte (le lecteur est monte
-   * avec `frozenAt: 0`). Or `sample(0)` juste apres un changement date plus tard donne un
-   * ratio de melange nul, donc la pose de l'etat PRECEDENT : une image fausse a chaque
-   * jointure, treize fois dans le montage par defaut.
-   */
-  it('rend exactement ce que le moteur rend, jointures comprises', async () => {
-    const blocs = defaultCycle().blocks
-    const lecteur = await ouvreCycle(REGLAGES, blocs, TAILLE)
+  it('renders each timeline state as a duck effect at the block boundary', async () => {
+    const blocks: Block[] = [
+      { state: 'idle', duration: 1 },
+      { state: 'wink', duration: 1 },
+      { state: 'notify', duration: 1 },
+      { state: 'play', duration: 1 }
+    ]
+    const reader = await ouvreCycle(SETTINGS, blocks, 128)
     try {
-      // les dates des jointures elles-memes, plus un point au milieu de chaque bloc
-      const dates = blocs.flatMap((b, i) => {
-        const debut = offsetOf(blocs, i)
-        return i === 0 ? [debut + b.duration / 2] : [debut, debut + b.duration / 2]
+      for (const [index, effect] of ['normal', 'wink', 'normal', 'normal'].entries()) {
+        const svg = await reader.rendre(offsetOf(blocks, index))
+        expect(svg.getAttribute('data-duck-effect')).toBe(effect)
+        expect(svg.querySelector('path[d^="M-28 -70"]')).not.toBeNull()
+      }
+      expect((await reader.rendre(offsetOf(blocks, 3))).getAttribute('data-duck-expression')).toBe('excite')
+    } finally {
+      reader.ferme()
+    }
+  })
+
+  it('replays the same frame after a complete cycle and animates between frames', async () => {
+    const blocks = defaultCycle().blocks
+    const reader = await ouvreCycle(SETTINGS, blocks, 128)
+    try {
+      const first = (await reader.rendre(0)).outerHTML
+      expect(head(await reader.rendre(0.5))).not.toBe(head(await reader.rendre(0)))
+      for (let t = 0; t < 30; t += 1.5) await reader.rendre(t)
+      expect((await reader.rendre(0)).outerHTML).toBe(first)
+    } finally {
+      reader.ferme()
+    }
+  })
+
+  it('includes a complete blink in the three-second avatar loop', async () => {
+    const reader = await ouvreCycle(SETTINGS, [{ state: 'idle', duration: 4 }], 128)
+    try {
+      const open = (await reader.rendre(1)).querySelector('[data-duck-animate="eye-left"]')?.getAttribute('transform')
+      const closed = (await reader.rendre(1.481)).querySelector('[data-duck-animate="eye-left"]')?.getAttribute('transform')
+      expect(open).toContain('scale(1.000 1.000)')
+      expect(closed).toContain('scale(1.000 0.060)')
+    } finally {
+      reader.ferme()
+    }
+  })
+
+  it('turns the right eye into a wide dash during the wink state', async () => {
+    const reader = await ouvreCycle(SETTINGS, [{ state: 'wink', duration: 1.6 }], 128)
+    try {
+      const open = (await reader.rendre(0)).querySelector('[data-duck-animate="eye-right"]')?.getAttribute('transform')
+      const wink = (await reader.rendre(0.8)).querySelector('[data-duck-animate="eye-right"]')?.getAttribute('transform')
+      expect(open).toContain('scale(1.000 1.000)')
+      expect(wink).toContain('scale(1.850 0.180)')
+    } finally {
+      reader.ferme()
+    }
+  })
+
+  it('shows a popping exclamation badge above the classic duck in the notification state', async () => {
+    const reader = await ouvreCycle(SETTINGS, [{ state: 'notify', duration: 2.2 }], 128)
+    try {
+      const early = await reader.rendre(0.08)
+      const badge = early.querySelector('[data-duck-notify]')!
+      const beginning = badge.getAttribute('transform')
+      expect(early.querySelector('[data-duck-animate="hearts"]')).toBeNull()
+      expect(early.querySelector('[data-duck-animate="eye-left"]')).not.toBeNull()
+      expect(badge.querySelector('path[d="M0 -8 L0 2"]')).not.toBeNull()
+
+      const peak = (await reader.rendre(0.3)).querySelector('[data-duck-notify]')!
+      expect(peak.getAttribute('transform')).not.toBe(beginning)
+      expect(Number(peak.getAttribute('transform')?.match(/scale\(([^)]+)\)/)?.[1])).toBeGreaterThan(1.12)
+      const resting = (await reader.rendre(0.9)).querySelector('[data-duck-notify]')!
+      expect(resting.getAttribute('transform')).toBe('translate(65 -70) scale(1.000)')
+      expect(resting.getAttribute('opacity')).toBe('1')
+    } finally {
+      reader.ferme()
+    }
+  })
+
+  it('applies bot expressions to the classic duck without changing its outline', async () => {
+    const blocks: Block[] = [{ state: 'idle', duration: 2 }]
+    const classic = await ouvreCycle(SETTINGS, blocks, 128)
+    const surprised = await ouvreCycle({ ...SETTINGS, expression: 'surpris' }, blocks, 128)
+    try {
+      const plain = await classic.rendre(1)
+      const expressive = await surprised.rendre(1)
+      expect(expressive.querySelector('path[d^="M-28 -70"]')?.getAttribute('d'))
+        .toBe(plain.querySelector('path[d^="M-28 -70"]')?.getAttribute('d'))
+      expect(expressive.querySelector('[data-duck-animate="eye-left"]')?.getAttribute('transform'))
+        .toContain('scale(1.200')
+    } finally {
+      classic.ferme()
+      surprised.ferme()
+    }
+  })
+
+  it('morphs the duck outline into a hexagon and back within the state', async () => {
+    const reader = await ouvreCycle(SETTINGS, [{ state: 'hexagon', duration: 1.6 }], 128)
+    const outline = async (at: number) => (await reader.rendre(at))
+      .querySelector('[data-duck-animate="head"] > path')?.getAttribute('d')
+    try {
+      const start = await outline(0)
+      const entering = await outline(0.2)
+      const hexagon = await outline(0.8)
+      const leaving = await outline(1.5)
+      expect(entering).not.toBe(start)
+      expect(hexagon).toContain('C38.00 -70.00 48.00 -68.00 57.00 -66.00')
+      expect(leaving).not.toBe(hexagon)
+      expect(await outline(0)).toBe(start)
+    } finally {
+      reader.ferme()
+    }
+  })
+
+  it('renders six moving orbit ribbons behind and in front of the duck', async () => {
+    const reader = await ouvreCycle(SETTINGS, [{ state: 'orbit', duration: 3.4 }], 128)
+    try {
+      const svg = await reader.rendre(1.1)
+      const back = svg.querySelector('[data-duck-layer="back"]')!
+      const front = svg.querySelector('[data-duck-layer="front"]')!
+      expect(back.querySelectorAll('[data-duck-arc]')).toHaveLength(6)
+      expect(front.querySelectorAll('[data-duck-arc]')).toHaveLength(6)
+      expect(back.nextElementSibling?.contains(svg.querySelector('[data-duck-animate="head"]'))).toBe(true)
+      expect(front.previousElementSibling?.contains(svg.querySelector('[data-duck-animate="head"]'))).toBe(true)
+      const first = front.querySelector('[data-duck-arc="ring-0"]')?.getAttribute('d')
+      expect((await reader.rendre(1.35)).querySelector('[data-duck-arc="ring-0"]')?.getAttribute('d')).not.toBe(first)
+      expect((await reader.rendre(0.2)).querySelector('[data-duck-layer="front"] [data-duck-arc="ring-5"]')?.getAttribute('opacity')).toBe('0')
+      const ending = await reader.rendre(3.39)
+      expect(head(ending)).toContain('scale(1.0000')
+      expect(Number(ending.querySelector('[data-duck-layer="back"] [data-duck-arc]')?.getAttribute('opacity'))).toBeLessThan(0.03)
+    } finally {
+      reader.ferme()
+    }
+  })
+
+  it('animates the duck conversation cues while keeping the face readable', async () => {
+    const reader = await ouvreCycle(SETTINGS, [
+      { state: 'thinking', duration: 2.6 },
+      { state: 'wide', duration: 1.8 },
+      { state: 'alert', duration: 2.4 },
+      { state: 'exclaim', duration: 2 },
+      { state: 'sleep', duration: 2.4 },
+      { state: 'play', duration: 2 },
+      { state: 'swirl', duration: 1.3 }
+    ], 128)
+    try {
+      const thinking = await reader.rendre(0.1)
+      expect(thinking.querySelectorAll('[data-duck-thinking-dot]')).toHaveLength(3)
+      const thinkingDot = thinking.querySelector('[data-duck-thinking-dot]')?.getAttribute('r')
+      expect((await reader.rendre(0.4)).querySelector('[data-duck-thinking-dot]')?.getAttribute('r'))
+        .not.toBe(thinkingDot)
+
+      const wide = await reader.rendre(2.6 + 0.8)
+      expect(wide.querySelector('[data-duck-animate="eye-left"]')?.getAttribute('transform')).toContain('scale(1.280')
+      const alert = await reader.rendre(4.4 + 0.9)
+      expect(alert.querySelector('[data-duck-alert]')).not.toBeNull()
+      expect(alert.querySelector('[data-duck-notify]')).toBeNull()
+      const exclaim = await reader.rendre(6.8 + 0.8)
+      expect(exclaim.querySelector('[data-duck-exclaim]')).not.toBeNull()
+      expect(exclaim.querySelector('[data-duck-animate="surprise-lines"]')).toBeNull()
+
+      const sleep = await reader.rendre(8.8 + 0.5)
+      expect(sleep.querySelectorAll('[data-duck-sleep-z]')).toHaveLength(2)
+      const sleepZ = sleep.querySelector('[data-duck-sleep-z]')?.getAttribute('transform')
+      expect((await reader.rendre(8.8 + 0.7)).querySelector('[data-duck-sleep-z]')?.getAttribute('transform'))
+        .not.toBe(sleepZ)
+      const play = await reader.rendre(11.2 + 1)
+      expect(play.querySelector('[data-duck-layer]')).toBeNull()
+      expect(play.querySelectorAll('[data-duck-play-wave]')).toHaveLength(2)
+      expect(head(play)).toContain('scale(0.8200')
+      const speaking = play.querySelector('[data-duck-play-beak] ellipse')?.getAttribute('ry')
+      expect(Number(speaking)).toBeGreaterThan(2)
+      expect((await reader.rendre(11.2 + 1.2)).querySelector('[data-duck-play-beak] ellipse')?.getAttribute('ry'))
+        .not.toBe(speaking)
+      const swirl = await reader.rendre(13.2 + 0.5)
+      expect(swirl.querySelectorAll('[data-duck-layer="front"] [data-duck-arc]')).toHaveLength(3)
+    } finally {
+      reader.ferme()
+    }
+  })
+
+  it('keeps the outgoing duck visible while the next state enters', async () => {
+    const reader = await ouvreCycle(SETTINGS, [
+      { state: 'idle', duration: 2.4 },
+      { state: 'hexagon', duration: 1.6 },
+      { state: 'play', duration: 2 }
+    ], 128)
+    try {
+      expect((await reader.rendre(0)).querySelector('[data-duck-transition-from]')).toBeNull()
+      const boundary = await reader.rendre(2.4)
+      expect(boundary.querySelector('[data-duck-transition-from]')?.getAttribute('opacity')).toBe('1')
+      const middle = await reader.rendre(2.6)
+      const opacity = Number(middle.querySelector('[data-duck-transition-from]')?.getAttribute('opacity'))
+      expect(opacity).toBeGreaterThan(0)
+      expect(opacity).toBeLessThan(1)
+      expect((await reader.rendre(2.9)).querySelector('[data-duck-transition-from]')).toBeNull()
+      const hexToPlay = await reader.rendre(4)
+      expect(hexToPlay.querySelector('[data-duck-transition-from] [data-duck-animate="head"]')).not.toBeNull()
+      const frame = hexToPlay.outerHTML
+      await reader.rendre(5.9)
+      expect((await reader.rendre(4)).outerHTML).toBe(frame)
+    } finally {
+      reader.ferme()
+    }
+  })
+
+  it('lets burst and comet shrink without a full-size outgoing duck behind them', async () => {
+    const reader = await ouvreCycle(SETTINGS, [
+      { state: 'orbit', duration: 3.4 },
+      { state: 'burst', duration: 2.6 },
+      { state: 'comet', duration: 2.4 }
+    ], 128)
+    try {
+      for (const at of [3.5, 6.1]) {
+        const frame = await reader.rendre(at)
+        expect(frame.querySelector('[data-duck-transition-from]')).toBeNull()
+        expect(frame.querySelectorAll('[data-duck-animate="head"]')).toHaveLength(1)
+      }
+    } finally {
+      reader.ferme()
+    }
+  })
+
+  it('lets a conversation control the duck state without advancing the timeline', async () => {
+    let frame: FrameRequestCallback = () => {}
+    vi.stubGlobal('requestAnimationFrame', (callback: FrameRequestCallback) => { frame = callback; return 1 })
+    vi.stubGlobal('cancelAnimationFrame', () => {})
+    const state = ref<StateId>('thinking')
+    const elapsed = ref(0)
+    const host = document.createElement('div')
+    const app = createApp({
+      render: () => h(BloubBot, {
+        mode: 'conversation', playing: true, state: state.value, elapsed: elapsed.value,
+        'onUpdate:state': (value: StateId) => { state.value = value },
+        'onUpdate:elapsed': (value: number) => { elapsed.value = value }
       })
-      for (const t of dates) {
-        const svg = await lecteur.rendre(t)
-        const attendu = moteurAuMemeInstant(blocs, t)
-        expect(corpsDe(svg), `t=${t.toFixed(2)}`).toBe(attendu.bodyPath)
-        expect(yeuxDe(svg), `t=${t.toFixed(2)}`).toEqual(attendu.eyes.map((e) => e.matrix))
-      }
+    })
+    try {
+      app.mount(host)
+      expect(host.querySelector('[data-duck-thinking]')).not.toBeNull()
+      frame(1000)
+      frame(1016)
+      await nextTick()
+      expect(elapsed.value).toBeGreaterThan(0)
+      state.value = 'exclaim'
+      await nextTick()
+      await nextTick()
+      expect(elapsed.value).toBe(0)
+      expect(host.querySelector('[data-duck-exclaim]')).not.toBeNull()
+      expect(host.querySelector('[data-duck-transition-from] [data-duck-thinking]')).not.toBeNull()
+      for (let ms = 1032; ms < 4300; ms += 16) frame(ms)
+      await nextTick()
+      expect(state.value).toBe('exclaim')
+      expect(elapsed.value).toBeLessThan(2)
+      expect(host.querySelector('[data-duck-transition-from]')).toBeNull()
     } finally {
-      lecteur.ferme()
+      app.unmount()
+      vi.unstubAllGlobals()
     }
   })
 
-  /**
-   * L'image 0 est le PREMIER etat du montage, pas un repos qui morphe vers lui.
-   *
-   * Le lecteur etait monte sans prop `state`, donc le modele prenait son defaut `idle` et
-   * le moteur se construisait dessus : un montage commencant par l'orbite s'ouvrait sur une
-   * boule au repos qui morphait vers le triangle pendant 0,6 s. La lecture a l'ecran ne
-   * fait pas ca, elle amorce l'etat sur le bloc courant.
-   */
-  it('ouvre sur le premier etat du montage, sans morpher depuis le repos', async () => {
-    for (const debut of ['orbit', 'egg', 'hexagon'] as const) {
-      const blocs = [
-        { state: debut, duration: 2 },
-        { state: 'idle' as const, duration: 2 }
-      ]
-      const lecteur = await ouvreCycle(REGLAGES, blocs, TAILLE)
-      try {
-        const svg = await lecteur.rendre(0)
-        expect(corpsDe(svg), debut).toBe(moteurAuMemeInstant(blocs, 0).bodyPath)
-      } finally {
-        lecteur.ferme()
-      }
+  it('collapses the burst duck into a seed with moving feathers, then restores it', async () => {
+    const reader = await ouvreCycle(SETTINGS, [{ state: 'burst', duration: 2.6 }], 128)
+    try {
+      const start = await reader.rendre(0)
+      expect(start.getAttribute('data-duck-effect')).toBe('normal')
+      expect(start.querySelector('[data-duck-animate="surprise-lines"]')).toBeNull()
+      const first = start.outerHTML
+
+      const scatter = await reader.rendre(0.45)
+      expect(Number(scatter.querySelector('[data-duck-burst-rays]')?.getAttribute('opacity'))).toBeGreaterThan(0)
+      expect(scatter.querySelectorAll('[data-duck-burst-feather]')).toHaveLength(3)
+      const feather = scatter.querySelector('[data-duck-burst-feather]')?.getAttribute('transform')
+      expect((await reader.rendre(0.6)).querySelector('[data-duck-burst-feather]')?.getAttribute('transform')).not.toBe(feather)
+
+      const seed = await reader.rendre(0.7)
+      expect(seed.querySelector('[data-duck-burst-dot]')?.getAttribute('opacity')).toBe('1')
+      expect(seed.querySelector('[data-duck-burst-beak]')?.getAttribute('opacity')).toBe('1')
+      expect(head(seed)).toContain('scale(0.1114')
+      expect(seed.querySelector('[data-duck-animate="head"]')?.getAttribute('opacity')).toBe('0')
+
+      const restored = await reader.rendre(2.3)
+      expect(restored.querySelector('[data-duck-burst-dot]')?.getAttribute('opacity')).toBe('0')
+      expect(restored.querySelector('[data-duck-animate="head"]')?.getAttribute('opacity')).toBe('1')
+      expect(await reader.rendre(0).then((svg) => svg.outerHTML)).toBe(first)
+    } finally {
+      reader.ferme()
     }
+  })
+
+  it('holds the comet dot at the center while four trails orbit and the duck regrows', async () => {
+    const reader = await ouvreCycle(SETTINGS, [{ state: 'comet', duration: 2.4 }], 128)
+    try {
+      const early = await reader.rendre(0)
+      expect(early.querySelector('[data-duck-animate="head"]')?.getAttribute('transform')).toContain('scale(1.0000')
+      const middle = await reader.rendre(1)
+      const dot = middle.querySelector('[data-duck-comet-dot]')!
+      expect(dot.getAttribute('cx')).toBe('0')
+      expect(Number(dot.getAttribute('cy'))).toBeLessThan(3.6)
+      expect(dot.getAttribute('opacity')).toBe('1')
+      expect(middle.querySelector('[data-duck-animate="head"]')?.getAttribute('opacity')).toBe('0')
+      expect(middle.querySelectorAll('[data-duck-layer="front"] [data-duck-arc]')).toHaveLength(4)
+      const ribbon = middle.querySelector('[data-duck-arc="comet-0"]')?.getAttribute('d')
+      const frame = middle.outerHTML
+      expect((await reader.rendre(1.25)).querySelector('[data-duck-arc="comet-0"]')?.getAttribute('d')).not.toBe(ribbon)
+      const late = await reader.rendre(2.3)
+      expect(late.querySelector('[data-duck-comet-dot]')?.getAttribute('opacity')).toBe('0')
+      expect(late.querySelector('[data-duck-animate="head"]')?.getAttribute('opacity')).toBe('1')
+      expect((await reader.rendre(1)).outerHTML).toBe(frame)
+    } finally {
+      reader.ferme()
+    }
+  })
+
+  it('exports a self-contained SVG whose head animation has keyframes', async () => {
+    const blob = await versSvgAnime(SETTINGS, 128, 3, 0.5)
+    const svg = await blob.text()
+    expect(svg).toContain('class="duck-head"')
+    expect(svg).toContain('@keyframes duck-head')
+    expect(svg).toContain('class="duck-eye-left"')
+    expect(svg).toContain('@keyframes duck-eye-left')
+    expect(svg).toContain(`viewBox="${viewBoxExport(DEMI_ECRAN)}"`)
+  })
+
+  it('exports the wink as changing eye geometry in animated SVG', async () => {
+    const blob = await versSvgAnime({ ...SETTINGS, duckStyle: 'wink' }, 128, 7, 0.5)
+    const svg = await blob.text()
+    expect(svg).toContain('@keyframes duck-eye-right')
+    expect(svg).toContain('scale(1.850 0.180)')
   })
 })

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import BloubBot from '@/components/BloubBot.vue'
 import { DEFAULT_EXPRESSION } from '@/bot/expressions'
-import { DEFAULT_COLOR, DEFAULT_SHAPE } from '@/bot/skins'
+import { DEFAULT_COLOR, DEFAULT_DUCK_STYLE, DEFAULT_SHAPE, type DuckStyle } from '@/bot/skins'
 import type { StateId } from '@/bot/states'
 
 /**
@@ -21,6 +21,7 @@ withDefaults(
     state?: StateId
     shape?: string
     color?: string
+    duckStyle?: DuckStyle
     expression?: string
     size?: number
   }>(),
@@ -28,6 +29,7 @@ withDefaults(
     state: 'idle',
     shape: DEFAULT_SHAPE,
     color: DEFAULT_COLOR,
+    duckStyle: DEFAULT_DUCK_STYLE,
     expression: DEFAULT_EXPRESSION,
     size: 60
   }
@@ -47,6 +49,7 @@ withDefaults(
       :size="size"
       :shape="shape"
       :color="color"
+      :duck-style="duckStyle"
       :expression="expression"
       :frozen-at="frozenAt"
     />

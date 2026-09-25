@@ -5,15 +5,16 @@
  *
  * Le SVG exporte est celui de l'ECRAN, recadre : on serialise le noeud vivant
  * plutot que de reconstruire un rendu a cote. Deux sources de dessin auraient
- * derive, et le moteur est deja la seule qui vaille. C'est possible parce que le
- * SVG du bot est deja auto-porteur : aucune `var(--...)`, aucune classe, chaque
+ * derive. C'est possible parce que le SVG du canard est deja auto-porteur :
+ * aucune `var(--...)`, aucune classe, chaque
  * forme porte son `fill` en hex.
  */
 
 import { createApp, h, nextTick, ref } from 'vue'
 import BloubBot from '@/components/BloubBot.vue'
 import type { Block } from '@/bot/cycles'
-import { gifAnime, gifIndexe, indexe, nouvellePalette, recense, svgAnime } from './anime'
+import type { DuckStyle } from '@/bot/skins'
+import { gifAnime, gifIndexe, indexe, nouvellePalette, recense, svgAnimeDuck } from './anime'
 import { arrete, DEMI_ECRAN, sansCommentaires, viewBoxExport } from './export'
 
 /**
@@ -23,7 +24,11 @@ import { arrete, DEMI_ECRAN, sansCommentaires, viewBoxExport } from './export'
  * dimension intrinseque, Firefox refuse de rasteriser un SVG charge dans une
  * `<img>`, et le canvas ressort vide.
  */
-export function svgAutonome(svg: SVGSVGElement, taille: number, viewBox = viewBoxExport()) {
+export function svgAutonome(
+  svg: SVGSVGElement,
+  taille: number,
+  viewBox = svg.getAttribute('viewBox') ?? viewBoxExport()
+) {
   const clone = svg.cloneNode(true) as SVGSVGElement
   // Les classes Tailwind de la page n'existent pas dans le fichier livre.
   clone.removeAttribute('class')
@@ -246,6 +251,7 @@ export interface ReglagesBot {
   shape: string
   color: string
   expression: string
+  duckStyle?: DuckStyle
 }
 
 /**
@@ -253,8 +259,8 @@ export interface ReglagesBot {
  *
  * Pas de capture de l'avatar affiche, et c'est deliberé : a l'ecran le bot est
  * a une date d'horloge quelconque, alors qu'ici on veut une sequence
- * reproductible qui commence au debut. C'est possible parce que `engine.sample(t)`
- * est une fonction pure du temps — la meme date redonne toujours la meme image —
+ * reproductible qui commence au debut. Les poses du canard sont des fonctions
+ * du temps — la meme date redonne toujours la meme image —
  * et parce qu'un `BloubBot` a qui on donne `frozenAt` ne lance aucune boucle
  * d'animation ni aucun ecouteur : on le fait avancer nous-memes.
  *
@@ -382,8 +388,13 @@ export async function ouvreCycle(
  * Les yeux sont les seules formes du masque a porter un `transform` — le corps
  * n'en a pas — donc l'ordre du document suffit a les identifier.
  */
-function matricesDesYeux(svg: SVGSVGElement) {
-  return [...svg.querySelectorAll('mask [transform]')].map((e) => e.getAttribute('transform')!)
+function duckTransforms(svg: SVGSVGElement) {
+  return Object.fromEntries(
+    [...svg.querySelectorAll('[data-duck-animate]')].map((e) => [
+      e.getAttribute('data-duck-animate')!,
+      e.getAttribute('transform')!
+    ])
+  )
 }
 
 /**
@@ -400,11 +411,11 @@ export async function versSvgAnime(
   pas: number
 ): Promise<Blob> {
   let base = ''
-  const matrices = await sequenceDuBot(reglages, taille, nombre, pas, (svg, i) => {
+  const frames = await sequenceDuBot(reglages, taille, nombre, pas, (svg, i) => {
     if (i === 0) base = svgAutonome(svg, taille)
-    return matricesDesYeux(svg)
+    return duckTransforms(svg)
   })
-  const markup = svgAnime(base, matrices, +((nombre - 1) * pas).toFixed(3))
+  const markup = svgAnimeDuck(base, frames, +((nombre - 1) * pas).toFixed(3))
   return new Blob([markup], { type: 'image/svg+xml' })
 }
 

@@ -156,7 +156,6 @@ export type StateId =
   | 'notify'
   | 'exclaim'
   | 'sleep'
-  | 'egg'
   | 'hexagon'
   | 'play'
   | 'orbit'
@@ -183,7 +182,7 @@ export interface StateDef {
   /**
    * true = le corps est la silhouette "au repos", donc remplacable par la forme
    * choisie dans le personnalisateur. Les etats qui dessinent leur propre forme
-   * (le "!", les points, l'oeuf, le triangle...) valent false : c'est cette forme
+   * (le "!", les points, le triangle...) valent false : c'est cette forme
    * la qui EST l'animation.
    */
   baseBody: boolean
@@ -373,25 +372,9 @@ export const STATES: StateDef[] = [
   },
 
   {
-    id: 'egg',
-    duration: 1.8,
-    morph: 0.4,
-    baseFace: false,
-    baseBody: false,
-    blinkIn: true,
-    pose: () =>
-      base({
-        sil: silhouette('egg'),
-        gaze: { yaw: 19.97, pitch: 26.01, roll: -17.1 },
-        // les yeux se resserrent comme le corps
-        split: 11.07,
-        eyes: pair(0.164, 0.385)
-      })
-  },
-
-  {
     id: 'hexagon',
     duration: 1.6,
+    minDuration: 1.2,
     morph: 0.4,
     baseFace: false,
     baseBody: false,
@@ -408,6 +391,7 @@ export const STATES: StateDef[] = [
   {
     id: 'play',
     duration: 2,
+    minDuration: 1.1,
     morph: 0.5,
     baseFace: false,
     baseBody: false,
@@ -574,7 +558,7 @@ export const STATES: StateDef[] = [
 
 export const STATE_BY_ID = new Map(STATES.map((s) => [s.id, s]))
 
-/** Ordre de lecture de la sequence complete, calque sur la video de reference. */
+/** Ordre de lecture des etats conserves de la sequence de reference. */
 /**
  * Date, en temps local, ou chaque etat est le plus lisible : c'est la pose que
  * montrent les vignettes et la planche. Rendu deterministe, donc comparable
@@ -589,7 +573,6 @@ export const POSES: Record<StateId, number> = {
   notify: 0.9,
   exclaim: 0.8,
   sleep: 0.45,
-  egg: 0.8,
   hexagon: 0.8,
   play: 0.9,
   orbit: 1.2,
@@ -607,7 +590,6 @@ export const SEQUENCE: StateId[] = [
   'notify',
   'exclaim',
   'sleep',
-  'egg',
   'hexagon',
   'play',
   'orbit',
